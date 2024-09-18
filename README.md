@@ -33,4 +33,8 @@ The algorithm leverages the power of deep learning to create visually appealing 
 
 ## Examples
 
+![content](https://github.com/user-attachments/assets/d742c546-a704-4fe3-b902-d8757e9059b8)
+![style](https://github.com/user-attachments/assets/97b7b69a-7ce5-44a8-8a16-5b4ddaaff4fb)
+![output](https://github.com/user-attachments/assets/9e46c656-cedf-487e-9ac1-213653e666e5)
+
 You can find more examples in [this Box folder](https://cmu.box.com/s/eqlfmmebm8e1fc4ganjd1a2gu3nalc0o).
