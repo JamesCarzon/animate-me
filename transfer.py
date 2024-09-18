@@ -294,31 +294,33 @@ def main(loc1, loc2, title, steps, device="cuda"):
 
 
 def benchmarker(idxs, title, steps, reps):
-    device = torch.device(device if torch.cuda.is_available() else "cpu")
-    torch.set_default_device(device)
+    assert torch.cuda.is_available(), "Benchmarking requires a GPU."
 
-    # desired size of the output image
-    imsize = 512
-
-    loader = transforms.Compose([
-        transforms.Resize(imsize),  # scale imported image
-        transforms.ToTensor()])  # transform it into a torch tensor
-
-    # show images
-    unloader = transforms.ToPILImage()  # reconvert into PIL image
-
-    # import the model
-    cnn = vgg19(weights=VGG19_Weights.DEFAULT).features.eval()
-    cnn_normalization_mean = torch.tensor([0.485, 0.456, 0.406])
-    cnn_normalization_std = torch.tensor([0.229, 0.224, 0.225])
-
-    def transfer_time(loc1, loc2):
+    def transfer_time(loc1, loc2, device):
         start_time = time.time()
+
+        device = torch.device(device if torch.cuda.is_available() else "cpu")
+        torch.set_default_device(device)
+
+        # desired size of the output image
+        imsize = 512 # if torch.cuda.is_available() else 128  # use small size if no GPU
+
+        loader = transforms.Compose([
+            transforms.Resize(imsize),  # scale imported image
+            transforms.ToTensor()])  # transform it into a torch tensor
 
         # get images
         content_img = image_loader(loc1, loader, device)
         style_img = image_loader(loc2, loader, device)
         content_img, style_img = image_resizer(content_img, style_img)
+
+        # show images
+        unloader = transforms.ToPILImage()  # reconvert into PIL image
+
+        # import the model
+        cnn = vgg19(weights=VGG19_Weights.DEFAULT).features.eval()
+        cnn_normalization_mean = torch.tensor([0.485, 0.456, 0.406])
+        cnn_normalization_std = torch.tensor([0.229, 0.224, 0.225])
 
         input_img = content_img.clone()
 
@@ -332,7 +334,7 @@ def benchmarker(idxs, title, steps, reps):
         return f"./images/content/{idx}.jpg", f"./images/paintings/{idx}.jpg"
 
     devices = ['cuda', 'cpu']
-    times = [(transfer_time(*img_names(idx)), device, idx) for idx in idxs for dev in devices for _ in range(reps)]
+    times = [(transfer_time(*img_names(idx), dev), dev, idx) for idx in idxs for dev in devices for _ in range(reps)]
     times_df = pd.DataFrame(times, columns=['time', 'device', 'idx'])
 
     sns.set_theme(style="darkgrid")
@@ -390,7 +392,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--reps",
         type=int,
-        default=2
+        default=5
     )
     args = parser.parse_args()
 
